@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils import timezone
 
@@ -16,7 +17,6 @@ class Client(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     secret = models.UUIDField(default=uuid4)
     name = models.CharField(max_length=16)
-    redirect_uri = models.URLField()
     scopes = models.ManyToManyField(Scope)
     grant_type = models.PositiveSmallIntegerField(choices=(
         (0, 'authorization_code'),
@@ -36,6 +36,14 @@ class Client(models.Model):
 
     def has_scopes(self, scopes):
         return len(scopes) == self.scopes.filter(pk__in=scopes).count()
+
+
+class RedirectURI(models.Model):
+    client = models.ForeignKey(Client)
+    value = models.URLField()
+
+    def __str__(self):
+        return self.value
 
 
 class Code(models.Model):

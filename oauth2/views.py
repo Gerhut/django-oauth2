@@ -148,8 +148,10 @@ def authorize(request):
 
     # Redirect URI Verify
     try:
-        redirect_uri = request.GET.get('redirect_uri', client.redirect_uri)
-        assert redirect_uri.startswith(client.redirect_uri)
+        redirect_uri = request.GET['redirect_uri']
+        assert client.redirecturi_set.filter(value=redirect_uri).count() > 0
+    except KeyError:
+        return error('invalid_request')
     except AssertionError:
         redirect_uri = None
         return error('access_denied')
