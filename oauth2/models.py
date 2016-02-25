@@ -1,5 +1,4 @@
 from django.db import models
-from django.core.exceptions import ValidationError
 from django.conf import settings
 from django.utils import timezone
 
@@ -84,7 +83,7 @@ class AccessToken(models.Model):
         seconds = (timezone.now() - self.created).total_seconds()
         return seconds > self.client.access_token_expires_in
 
-    def is_refresh_expires(self):
+    def is_refresh_expired(self):
         seconds = (timezone.now() - self.created).total_seconds()
         return seconds > self.client.refresh_token_expires_in
 

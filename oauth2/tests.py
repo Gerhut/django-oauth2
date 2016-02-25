@@ -131,5 +131,33 @@ class ClientCredentialsTest(TestCase):
 
         access_token = response.json()['access_token']
         access_token = AccessToken.objects.get(id=UUID(hex=access_token))
-        self.assertEqual(self._client, access_token.client)
+        self.assertEqual(access_token.client, self._client)
         self.assertIsNone(access_token.user)
+
+
+class RefreshTokenTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls._client = Client(name='Test Client',
+                             grant_type=0)  # authorization_code
+        cls._client.save()
+
+        User = get_user_model()
+        cls._user = User.objects.create_user(username='TestUser')
+
+        cls._access_token = AccessToken(client=cls._client, user=cls._user)
+        cls._access_token.save()
+
+    def testRequestToken(self):
+        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = b64encode(
+            authorization.encode('ascii')).decode('ascii')
+        response = self.client.post('/token', {
+            'grant_type': 'refresh_token',
+            'refresh_token': self._access_token.get_refresh_token()
+        }, HTTP_AUTHORIZATION='Basic ' + authorization)
+
+        access_token = response.json()['access_token']
+        access_token = AccessToken.objects.get(id=UUID(hex=access_token))
+        self.assertEqual(access_token.client, self._client)
+        self.assertEqual(access_token.user, self._user)
