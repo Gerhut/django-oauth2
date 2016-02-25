@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Authorization {{ name }} - Django OAuth2</title>
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+</head>
+<body>
+  <form method="POST" action="{{ request.get_full_path }}" class="container">
+    {% if notice %}<div class="alert alert-danger">{{ notice }}</div>{% endif %}
+    <h1>Authentication {{ name }} - Django OAuth2</h1>
+    <input name="username" class="form-control" placeholder="Username">
+    <input name="password" class="form-control" placeholder="Password">
+    {{ csrf_token }}
+    <button type="submit" class="btn btn-primary">Authorize</button>
+  </form>
+</body>
+</html>
