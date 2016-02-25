@@ -18,7 +18,7 @@ class AuthorizationCodeTest(TestCase):
                         redirect_uri=redirect_uri)
         client.save()
         cls.client_id = str(client)
-        cls.client_secret = client.secret.hex
+        cls.client_secret = client.get_secret()
         cls.client_redirect_uri = redirect_uri
 
         User = get_user_model()
@@ -119,7 +119,7 @@ class PasswordTest(TestCase):
                         redirect_uri="http://www.example.com/")
         client.save()
         cls.client_id = str(client)
-        cls.client_secret = client.secret.hex
+        cls.client_secret = client.get_secret()
 
         User = get_user_model()
         username = 'TestUser'
@@ -155,7 +155,7 @@ class ClientCredentialsTest(TestCase):
                         redirect_uri="http://www.example.com/")
         client.save()
         cls.client_id = str(client)
-        cls.client_secret = client.secret.hex
+        cls.client_secret = client.get_secret()
 
     def testRequestToken(self):
         authorization = self.client_id + ':' + self.client_secret

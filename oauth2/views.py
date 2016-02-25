@@ -97,7 +97,7 @@ def token(request):
     return JsonResponse({
         'access_token': str(access_token),
         'token_type': 'bearer',
-        'expires_in': access_token.client.access_token_expires_seconds,
+        'expires_in': access_token.client.access_token_expires_in,
         'refresh_token': access_token.get_refresh_token(),
     })
 
@@ -134,9 +134,10 @@ def authorize(request):
         client_id = request.GET['client_id']
         client_id = UUID(hex=client_id)
         client = Client.objects.get(id=client_id)
-        assert (client.get_grant_type_display() == 'authorization_code' and
-                response_type == 'code') or (
-                client.get_grant_type_display() == 'implicit' and
+        grant_type = client.get_grant_type_display()
+        assert (grant_type == 'authorization_code' and
+                response_type == 'code' or
+                grant_type == 'implicit' and
                 response_type == 'token')
     except KeyError:
         return error('invalid_request')
@@ -180,7 +181,7 @@ def authorize(request):
         access_token = AccessToken(client=client, user=request.user)
         access_token.save()
         return redirect_back({
-            'access_token': access_token.id.hex,
+            'access_token': str(access_token),
             'token_type': 'bearer',
-            'expires_in': access_token.client.access_token_expires_seconds,
+            'expires_in': access_token.client.access_token_expires_in,
         })

@@ -24,13 +24,15 @@ class Client(models.Model):
         (2, 'password'),
         (3, 'client_credentials')
     ), default=0)
-    code_expires_seconds = models.PositiveIntegerField(default=300)
-    access_token_expires_seconds = models.PositiveIntegerField(default=604800)
-    refresh_token_expires_seconds = models.PositiveIntegerField(
-        default=2592000)
+    code_expires_in = models.PositiveIntegerField(default=300)
+    access_token_expires_in = models.PositiveIntegerField(default=604800)
+    refresh_token_expires_in = models.PositiveIntegerField(default=2592000)
 
     def __str__(self):
         return self.id.hex
+
+    def get_secret(self):
+        return self.secret.hex
 
     def has_scopes(self, scopes):
         return len(scopes) == self.scopes.filter(pk__in=scopes).count()
@@ -48,7 +50,7 @@ class Code(models.Model):
 
     def is_expired(self):
         seconds = (timezone.now() - self.created).total_seconds()
-        return seconds > self.client.code_expires_seconds
+        return seconds > self.client.code_expires_in
 
     def get_access_token(self):
         self.delete()
@@ -72,16 +74,17 @@ class AccessToken(models.Model):
 
     def is_expired(self):
         seconds = (timezone.now() - self.created).total_seconds()
-        return seconds > self.client.access_token_expires_seconds
+        return seconds > self.client.access_token_expires_in
 
     def is_refresh_expires(self):
         seconds = (timezone.now() - self.created).total_seconds()
-        return seconds > self.client.refresh_token_expires_seconds
+        return seconds > self.client.refresh_token_expires_in
 
     def refresh(self):
         self.delete()
-        access_token = AccessToken(client=self.client,
-                                   user=self.user,
-                                   refresh_id=self.refresh_id)
+        access_token = AccessToken(
+            client=self.client,
+            user=self.user,
+            refresh_id=self.refresh_id)
         access_token.save()
         return access_token
