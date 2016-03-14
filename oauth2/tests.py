@@ -28,7 +28,7 @@ class AuthorizationCodeTest(TestCase):
         self.client.force_login(self._user)
         response = self.client.get('/authorize', {
             'response_type': 'code',
-            'client_id': str(self._client),
+            'client_id': self._client.id.hex,
             'redirect_uri': str(self._redirect_uri),
             'state': state
         })
@@ -38,7 +38,7 @@ class AuthorizationCodeTest(TestCase):
         self.assertTrue(redirect_uri.startswith(str(self._redirect_uri)))
         self.assertEqual(redirect_query['state'], state)
 
-        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = self._client.id.hex + ':' + self._client.secret.hex
         authorization = b64encode(
             authorization.encode('ascii')).decode('ascii')
         response = self.client.post('/token', {
@@ -71,7 +71,7 @@ class ImplicitTest(TestCase):
         self.client.force_login(self._user)
         response = self.client.get('/authorize', {
             'response_type': 'token',
-            'client_id': str(self._client),
+            'client_id': self._client.id.hex,
             'redirect_uri': str(self._redirect_uri),
             'state': state
         })
@@ -99,7 +99,7 @@ class PasswordTest(TestCase):
                                              password=cls._password)
 
     def testRequestToken(self):
-        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = self._client.id.hex + ':' + self._client.secret.hex
         authorization = b64encode(
             authorization.encode('ascii')).decode('ascii')
         response = self.client.post('/token', {
@@ -122,7 +122,7 @@ class ClientCredentialsTest(TestCase):
         cls._client.save()
 
     def testRequestToken(self):
-        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = self._client.id.hex + ':' + self._client.secret.hex
         authorization = b64encode(
             authorization.encode('ascii')).decode('ascii')
         response = self.client.post('/token', {
@@ -149,7 +149,7 @@ class RefreshTokenTest(TestCase):
         cls._access_token.save()
 
     def testRequestToken(self):
-        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = self._client.id.hex + ':' + self._client.secret.hex
         authorization = b64encode(
             authorization.encode('ascii')).decode('ascii')
         response = self.client.post('/token', {
@@ -171,7 +171,7 @@ class GeneralErrorTest(TestCase):
         cls._client.save()
 
     def testInvalidRequest(self):
-        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = self._client.id.hex + ':' + self._client.secret.hex
         authorization = b64encode(
             authorization.encode('ascii')).decode('ascii')
         response = self.client.post(

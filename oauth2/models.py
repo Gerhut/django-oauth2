@@ -30,9 +30,6 @@ class Client(models.Model):
     def __str__(self):
         return self.id.hex
 
-    def get_secret(self):
-        return self.secret.hex
-
     def has_scopes(self, scopes):
         return len(scopes) == self.scopes.filter(pk__in=scopes).count()
 
