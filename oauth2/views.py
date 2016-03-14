@@ -14,7 +14,9 @@ from .models import Client, Code, AccessToken
 def token(request):
 
     class GrantError(Exception):
-        pass
+        def __init__(self, msg):
+            super().__init__(msg)
+            self.msg = msg
 
     # Authenticate Client by Basic Access Authentication
     try:

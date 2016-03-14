@@ -161,3 +161,49 @@ class RefreshTokenTest(TestCase):
         access_token = AccessToken.objects.get(id=UUID(hex=access_token))
         self.assertEqual(access_token.client, self._client)
         self.assertEqual(access_token.user, self._user)
+
+
+class GeneralErrorTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls._client = Client(name='Test Client',
+                             grant_type=3)  # client_credentials
+        cls._client.save()
+
+    def testInvalidRequest(self):
+        authorization = str(self._client) + ':' + self._client.get_secret()
+        authorization = b64encode(
+            authorization.encode('ascii')).decode('ascii')
+        response = self.client.post(
+            '/token', HTTP_AUTHORIZATION='Basic ' + authorization)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json()['error'], 'invalid_request')
+
+    def testInvalidClient(self):
+        response = self.client.post('/token', {
+            'grant_type': 'client_credentials'
+        })
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()['error'], 'invalid_client')
+        self.assertIn('WWW-Authenticate', response)
+
+        response = self.client.post('/token', {
+            'grant_type': 'client_credentials'
+        }, HTTP_AUTHORIZATION='Basic dummy')
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()['error'], 'invalid_client')
+        self.assertIn('WWW-Authenticate', response)
+
+    def testInvalidGrant(self):
+        response = self.client.post('/token', {
+            'grant_type': 'password',
+            'username': 'TestUser',
+            'password': 'DjangoOAuth2'
+        })
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json()['error'], 'invalid_client')
+        self.assertIn('WWW-Authenticate', response)
