@@ -50,7 +50,7 @@ def token(request):
                 assert not code.is_expired()
                 assert code.client == client
                 assert code.redirect_uri == redirect_uri
-            except (Code.DoesNotExist, AssertionError):
+            except (ValueError, Code.DoesNotExist, AssertionError):
                 raise GrantError('invalid_grant')
 
             access_token = code.get_access_token()
@@ -137,16 +137,21 @@ def authorize(request):
         client_id = UUID(hex=client_id)
         client = Client.objects.get(id=client_id)
         grant_type = client.get_grant_type_display()
+        assert response_type in ('code', 'token')
+    except KeyError:
+        return error('invalid_request')
+    except (ValueError, Client.DoesNotExist):
+        return error('unauthorized_client')
+    except AssertionError:
+        return error('unsupported_response_type')
+
+    try:
         assert (grant_type == 'authorization_code' and
                 response_type == 'code' or
                 grant_type == 'implicit' and
                 response_type == 'token')
-    except KeyError:
-        return error('invalid_request')
-    except Client.DoesNotExist:
-        return error('unauthorized_client')
     except AssertionError:
-        return error('unsupported_response_type')
+        return error('unauthorized_client')
 
     # Redirect URI Verify
     try:

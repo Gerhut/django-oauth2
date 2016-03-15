@@ -6,10 +6,10 @@ from uuid import uuid4
 
 
 class Scope(models.Model):
-    name = models.CharField(max_length=8, primary_key=True)
+    token = models.CharField(max_length=8, primary_key=True)
 
     def __str__(self):
-        return self.name
+        return self.token
 
 
 class Client(models.Model):
